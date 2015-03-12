@@ -9,8 +9,12 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 
 public class MainActivity extends ActionBarActivity {
+
+    private ArrayList<Controller> activeControllers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +24,7 @@ public class MainActivity extends ActionBarActivity {
         SQLiteDatabase myDB= null;
 
         try {
+
             myDB = this.openOrCreateDatabase("mydb", MODE_PRIVATE, null);
 
             /* Create a Table in the Database. */
@@ -65,6 +70,30 @@ public class MainActivity extends ActionBarActivity {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void back(){
+        if(hasController()) {
+            getCurrentController().hide(this);
+            activeControllers.remove(activeControllers.size()-1);
+            if(hasController())
+                getCurrentController().show(this);
+        }
+    }
+
+    public Controller getCurrentController(){
+        return activeControllers.get(activeControllers.size()-1);
+    }
+
+    public boolean hasController(){
+        return !activeControllers.isEmpty();
+    }
+
+    public void setCurrentController(Controller controller){
+        if(hasController())
+            getCurrentController().hide(this);
+        activeControllers.add(controller);
+        controller.show(this);
     }
 
 
