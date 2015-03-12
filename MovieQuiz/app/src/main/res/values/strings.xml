@@ -6,4 +6,5 @@
     <string name="start_quiz">Take the Quiz</string>
     <string name="quiz_stats">Statistics of Quizzes</string>
     <string name="app_title">MovieDB Quiz</string>
+    <string name="title_activity_quiz_screen">QuizScreen</string>
 </resources>

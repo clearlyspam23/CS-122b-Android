@@ -35,17 +35,19 @@
     <FrameLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="98dp"
         android:layout_above="@+id/tableLayout"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="72dp">
+        android:layout_alignParentStart="true">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/questionText"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:textSize="45sp"
+            android:textStyle="bold" />
     </FrameLayout>
 
     <TableLayout
@@ -55,7 +57,8 @@
         android:id="@+id/tableLayout"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:visibility="invisible">
 
         <Button
             android:layout_width="wrap_content"
