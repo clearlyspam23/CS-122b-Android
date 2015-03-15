@@ -6,8 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,32 +32,6 @@ public class MainActivity extends ActionBarActivity {
             importMoviesTable(myDB); // Create 'movies' table and import all data
             importStarsTable(myDB); // Create 'stars' table and import all data
             importStarsInMoviesTable(myDB); // Create 'stars_in_movies' table and import all data
-
-            Cursor movieCursor = myDB.rawQuery("select count(*) from movies", null);
-            movieCursor.moveToFirst();
-            int movieCount = movieCursor.getInt(0);
-            movieCursor.close();
-
-            Cursor starsCursor = myDB.rawQuery("select count(*) from stars", null);
-            starsCursor.moveToFirst();
-            int starsCount = starsCursor.getInt(0);
-            starsCursor.close();
-
-            Cursor simCursor = myDB.rawQuery("select count(*) from stars_in_movies", null);
-            simCursor.moveToFirst();
-            int simCount = simCursor.getInt(0);
-            simCursor.close();
-
-            LinearLayout lView = new LinearLayout(this);
-
-            TextView myText = new TextView(this);
-
-            String dbcount = "Movies: " + movieCount + " Stars: " + starsCount + " SIM:" +simCount;
-            myText.setText(dbcount);
-
-            lView.addView(myText);
-
-            setContentView(lView);
         }
         catch (Exception e) {
             e.printStackTrace();
