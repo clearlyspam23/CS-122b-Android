@@ -36,6 +36,8 @@ public class MainActivity extends ActionBarActivity {
         catch (Exception e) {
             e.printStackTrace();
         }
+
+        setCurrentController(new MainController());
     }
 
     public void back(){

@@ -52,4 +52,12 @@ public abstract class Controller {
     protected <T> T getView(int id, Class<T> widgetClass){
         return widgetClass.cast(activity.findViewById(id));
     }
+
+    public void goToController(Controller controller){
+        activity.setCurrentController(controller);
+    }
+
+    public void back(){
+        activity.back();
+    }
 }

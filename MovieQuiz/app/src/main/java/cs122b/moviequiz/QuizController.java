@@ -99,8 +99,11 @@ public class QuizController extends Controller implements View.OnClickListener{
         if(output.length()<3) {
             output = "0" + output;
         }
-        output = output + totalSeconds%60;
-        return output;
+        String outSeconds = "" + totalSeconds%60;
+        if(outSeconds.length()<2){
+            outSeconds = "0" + outSeconds;
+        }
+        return output + outSeconds;
     }
 
     private CountDownTimer generateTimer(long timeMillis){
@@ -151,6 +154,14 @@ public class QuizController extends Controller implements View.OnClickListener{
 
             public void onFinish() {
                 questionField.setText("Correct : (" + questionsCorrect + ") Wrong: (" + (questionsAnswered - questionsCorrect) + ")");
+                backButton.setVisibility(View.VISIBLE);
+                backButton.setEnabled(true);
+                backButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        back();
+                    }
+                });
             }
         }.start();
         //store the results somewhere
