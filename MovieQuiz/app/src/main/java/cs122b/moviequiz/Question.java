@@ -27,4 +27,18 @@ public class Question {
     public List<String> getOptions() {
         return options;
     }
+
+    public String toString() {
+        StringBuffer toReturn = new StringBuffer();
+        toReturn.append("Question: " + question + " | Answer: " + answer + " | options: [");
+        for(int i=0; i<4; i++) {
+            toReturn.append(options.get(i));
+            if(i != 3) {
+                toReturn.append(",");
+            }
+        }
+        toReturn.append("]");
+
+        return toReturn.toString();
+    }
 }
