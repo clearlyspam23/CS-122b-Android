@@ -26,8 +26,7 @@ public class QuestionGenerator {
     public Question generateRandomQuestion() {
         Random random = new Random();
 
-        //int choice = random.nextInt(9);
-        int choice = 9; // TODO: REMOVE
+        int choice = random.nextInt(10);
 
         switch(choice) {
             case 0:
