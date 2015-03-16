@@ -12,10 +12,12 @@ public class MainController extends Controller implements View.OnClickListener{
     private Button viewStatisticsButton;
 
     private QuizController quizController;
+    private ResultsController resultsController;
 
     public MainController() {
         super(R.layout.activity_main);
         quizController = new QuizController();
+        resultsController = new ResultsController();
     }
 
     @Override
@@ -38,7 +40,7 @@ public class MainController extends Controller implements View.OnClickListener{
             goToController(quizController);
         }
         else if(v.equals(viewStatisticsButton)){
-
+            goToController(resultsController);
         }
     }
 }

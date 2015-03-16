@@ -41,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="0"
-                android:id="@+id/numQuizesView"
+                android:id="@+id/statsNumQuizes"
                 android:layout_column="1" />
 
         </TableRow>
@@ -65,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="0"
-                android:id="@+id/questionsAnswered"
+                android:id="@+id/statsQuestionsAnswered"
                 android:layout_column="1" />
         </TableRow>
 
@@ -88,7 +88,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="0"
-                android:id="@+id/correctAnswers"
+                android:id="@+id/statsCorrectAnswers"
                 android:layout_column="1" />
         </TableRow>
 
@@ -111,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="0"
-                android:id="@+id/wrongAnswers"
+                android:id="@+id/statsWrongAnswers"
                 android:layout_column="1" />
         </TableRow>
 
@@ -134,7 +134,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="0"
-                android:id="@+id/averageAnswer"
+                android:id="@+id/statsAverageTime"
                 android:layout_column="1" />
         </TableRow>
 
@@ -157,7 +157,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="0"
-                android:id="@+id/totalAnswer"
+                android:id="@+id/statsTotalTime"
                 android:layout_column="1" />
         </TableRow>
     </TableLayout>

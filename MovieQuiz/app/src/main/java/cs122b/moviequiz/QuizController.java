@@ -35,7 +35,10 @@ public class QuizController extends Controller implements View.OnClickListener{
 
     private CountDownTimer quizTimer;
 
-    private ArrayList<QuestionResult> results;
+
+    private int quizId;
+    private int questionId;
+
     private int questionsAnswered;
     private int questionsCorrect;
 
@@ -46,7 +49,6 @@ public class QuizController extends Controller implements View.OnClickListener{
     public QuizController(int seconds){
         super(R.layout.activity_quiz);
         quizDuration = seconds * 1000l;
-        results = new ArrayList<QuestionResult>();
     }
 
     @Override
@@ -68,7 +70,6 @@ public class QuizController extends Controller implements View.OnClickListener{
         timeField.setText(calculateTime(quizDuration));
         questionField.setTextColor(Color.BLACK);
         questionField.setText("Ready?");
-        results.clear();
 
         new CountDownTimer(4000, 4000) {
 
@@ -107,7 +108,7 @@ public class QuizController extends Controller implements View.OnClickListener{
     }
 
     private CountDownTimer generateTimer(long timeMillis){
-        return new CountDownTimer(timeMillis, 1000) {
+        return new CountDownTimer(timeMillis, 50) {
 
             @Override
             public void onTick(long millisUntilFinished) {
@@ -122,6 +123,8 @@ public class QuizController extends Controller implements View.OnClickListener{
     }
 
     private void startQuiz(){
+        quizId = getActivity().getResults().getNextQuizId();
+        questionId = 0;
         currentTime = 0;
         tableLayout.setVisibility(View.VISIBLE);
         quizTimer = generateTimer(quizDuration);
@@ -186,7 +189,7 @@ public class QuizController extends Controller implements View.OnClickListener{
         //check if the answer is right and store it
         boolean correct = currentQuestion.getAnswer().equals(((Button)v).getText());
         long timeTaken = currentTime - currentStart;
-        results.add(new QuestionResult(correct, timeTaken));
+        getActivity().getResults().addResult(quizId, questionId++, correct, timeTaken);
         questionsAnswered++;
         if(!correct) {
             //the answer is wrong

@@ -17,6 +17,8 @@ public class MainActivity extends ActionBarActivity {
 
     private ArrayList<Controller> activeControllers = new ArrayList<>();
 
+    private ResultsStore results;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +31,7 @@ public class MainActivity extends ActionBarActivity {
             myDB = this.openOrCreateDatabase("mydb", MODE_PRIVATE, null);
 
             /* CREATE tables and IMPORT data */
+            createResultsTable(myDB);
             importMoviesTable(myDB); // Create 'movies' table and import all data
             importStarsTable(myDB); // Create 'stars' table and import all data
             importStarsInMoviesTable(myDB); // Create 'stars_in_movies' table and import all data
@@ -36,7 +39,7 @@ public class MainActivity extends ActionBarActivity {
         catch (Exception e) {
             e.printStackTrace();
         }
-
+        results = new ResultsStore();
         setCurrentController(new MainController());
     }
 
@@ -85,6 +88,17 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void createResultsTable(SQLiteDatabase myDB){
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS quiz_results( " +
+                "quiz_id INTEGER NOT NULL, " +
+                "question_id INTEGER NOT NULL, " +
+                "correct INTEGER NOT NULL, " +
+                "time INTEGER NOT NULL, " +
+                "PRIMARY KEY(quiz_id, question_id)" +
+                ");";
+        myDB.execSQL(createTableSQL);
     }
 
     private void importStarsTable(SQLiteDatabase myDB) {
@@ -182,6 +196,10 @@ public class MainActivity extends ActionBarActivity {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public ResultsStore getResults(){
+        return results;
     }
 }
 
