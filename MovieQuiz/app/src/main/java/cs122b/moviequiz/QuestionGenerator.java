@@ -26,8 +26,8 @@ public class QuestionGenerator {
     public Question generateRandomQuestion() {
         Random random = new Random();
 
-        int choice = random.nextInt(7);
-        //int choice = 7; // TODO: REMOVE
+        int choice = random.nextInt(9);
+        //int choice = 8; // TODO: REMOVE
 
         switch(choice) {
             case 0:
@@ -45,11 +45,11 @@ public class QuestionGenerator {
             case 6:
                 return whichStarAppearsInBothMovies();
             case 7:
-                return whoDidNotDirectStar(); // THIS IS INCOMPLETE
+                return whoDirectedStarInYear();
             case 8:
                 return whichStarDidNotAppearInMovieWithThisStar();
             case 9:
-                return whoDirectedStarInYear();
+                return whoDidNotDirectStar(); // THIS IS INCOMPLETE
             default:
                 throw new IllegalArgumentException();
         }
@@ -404,12 +404,123 @@ public class QuestionGenerator {
 
     private Question whichStarDidNotAppearInMovieWithThisStar() {
         String questionTemplate = "Which star did not appear in the same movie with the star @STAR@?";
-        return null;
+
+        String moviesWithFourActorsSQL = "SELECT DISTINCT M.title, SIM1.star_id, SIM2.star_id, SIM3.star_id, SIM4.star_id " +
+                                          "FROM stars_in_movies SIM1, stars_in_movies SIM2, stars_in_movies SIM3, stars_in_movies SIM4, movies M " +
+                                          "WHERE SIM1.movie_id = SIM2.movie_id " +
+                                          "AND SIM2.movie_id = SIM3.movie_id " +
+                                          "AND SIM3.movie_id = SIM4.movie_id " +
+                                          "AND SIM1.star_id != SIM2.star_id " +
+                                          "AND SIM2.star_id != SIM3.star_id " +
+                                          "AND SIM3.star_id != SIM4.star_id " +
+                                          "AND M.id = SIM1.movie_id " +
+                                          "ORDER BY RANDOM() " +
+                                          "LIMIT 1;";
+        Cursor cursor = myDB.rawQuery(moviesWithFourActorsSQL, null);
+        cursor.moveToFirst();
+        String movieTitle = cursor.getString(0);
+        String star_id1 = cursor.getString(1);
+        String star_id2 = cursor.getString(2);
+        String star_id3 = cursor.getString(3);
+        String starReplacement_id = cursor.getString(4);
+        cursor.close();
+
+        String findStarByID = "SELECT DISTINCT first_name||' '||last_name AS name " +
+                "FROM stars S " +
+                "WHERE S.id = ?;";
+        Cursor replacement1Cursor = myDB.rawQuery(findStarByID, new String[]{star_id1});
+        replacement1Cursor.moveToFirst();
+        String wrongActor1 = replacement1Cursor.getString(0);
+        replacement1Cursor.close();
+
+        Cursor replacement2Cursor = myDB.rawQuery(findStarByID, new String[]{star_id2});
+        replacement2Cursor.moveToFirst();
+        String wrongActor2 = replacement2Cursor.getString(0);
+        replacement2Cursor.close();
+
+        Cursor replacement3Cursor = myDB.rawQuery(findStarByID, new String[]{star_id3});
+        replacement3Cursor.moveToFirst();
+        String wrongActor3 = replacement3Cursor.getString(0);
+        replacement3Cursor.close();
+
+        Cursor replacement4Cursor = myDB.rawQuery(findStarByID, new String[]{starReplacement_id});
+        replacement4Cursor.moveToFirst();
+        String starReplacement = replacement4Cursor.getString(0);
+        replacement4Cursor.close();
+
+        // Add the incorrect answers to the list of user options
+        List<String> options = new ArrayList<String>();
+        options.add(wrongActor1);
+        options.add(wrongActor2);
+        options.add(wrongActor3);
+
+        String answerSQL = "SELECT S.first_name||' '||S.last_name " +
+                           "FROM movies M JOIN stars_in_movies SIM " +
+                           "   ON M.id = SIM.movie_id JOIN stars S " +
+                           "   ON SIM.star_id = S.id " +
+                           "WHERE S.first_name != '' AND S.last_name != '' " +
+                           "   AND M.title != ? " +
+                           "ORDER BY RANDOM() " +
+                           "LIMIT 1;";
+        Cursor answerCursor = myDB.rawQuery(answerSQL, new String[]{movieTitle});
+        answerCursor.moveToFirst();
+        String answer = answerCursor.getString(0);
+        answerCursor.close();
+
+        // Add the correct answer
+        options.add(answer);
+
+
+        // Generate the Question object and return it
+        String question = questionTemplate.replace("@STAR@", starReplacement);
+        Collections.shuffle(options); // Randomize the user options
+
+        return new Question(question, answer, options);
     }
 
     private Question whoDirectedStarInYear() {
         String questionTemplate = "Who directed the star @STAR@ in year @YEAR@?";
-        return null;
+
+        String movieWhereDirectorDirectedStar = "SELECT M.director, S.first_name||' '||S.last_name, M.year " +
+                                                "FROM movies M JOIN stars_in_movies SIM " +
+                                                "   ON M.id = SIM.movie_id JOIN stars S " +
+                                                "   ON SIM.star_id = S.id " +
+                                                "WHERE S.first_name != '' AND S.last_name != '' " +
+                                                    "AND M.director != '' AND year != '' " +
+                                                "ORDER BY RANDOM() " +
+                                                "LIMIT 1;";
+        Cursor answerCursor = myDB.rawQuery(movieWhereDirectorDirectedStar, null);
+        answerCursor.moveToFirst();
+        String answer = answerCursor.getString(0);
+        String starReplacement = answerCursor.getString(1);
+        String yearReplacement = answerCursor.getString(2);
+        answerCursor.close();
+
+        // Add the correct answer to the list of user options
+        List<String> options = new ArrayList<String>();
+        options.add(answer);
+
+        String incorrectAnswerSQL = "SELECT M.director " +
+                                    "FROM movies M JOIN stars_in_movies SIM " +
+                                    "   ON M.id = SIM.movie_id JOIN stars S " +
+                                    "   ON SIM.star_id = S.id " +
+                                    "WHERE M.director != '' AND S.first_name != '' AND S.last_name != '' " +
+                                    "   AND (S.first_name||' '||S.last_name != ? OR M.director != ? OR year != ?) " +
+                                    "ORDER BY RANDOM() " +
+                                    "LIMIT 3;";
+        Cursor incorrectAnswerCursor = myDB.rawQuery(incorrectAnswerSQL, new String[]{starReplacement, answer, yearReplacement} );
+        while (incorrectAnswerCursor.moveToNext()) {
+            // Add each wrong answer to the list of user options
+            options.add(incorrectAnswerCursor.getString(0));
+        }
+        incorrectAnswerCursor.close();
+
+
+        // Generate the Question object and return it
+        String question = questionTemplate.replace("@STAR@", starReplacement).replace("@YEAR@", yearReplacement);
+        Collections.shuffle(options); // Randomize the user options
+
+        return new Question(question, answer, options);
     }
 
     private Question generateQuestion(String questionTemplate, String correctAnswerSQL, String incorrectAnswerSQL, int correctAnswerIndex,
