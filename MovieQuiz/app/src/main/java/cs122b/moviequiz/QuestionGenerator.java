@@ -26,8 +26,8 @@ public class QuestionGenerator {
     public Question generateRandomQuestion() {
         Random random = new Random();
 
-        int choice = random.nextInt(9);
-        //int choice = 8; // TODO: REMOVE
+        //int choice = random.nextInt(9);
+        int choice = 9; // TODO: REMOVE
 
         switch(choice) {
             case 0:
@@ -292,71 +292,71 @@ public class QuestionGenerator {
 
     private Question whoDidNotDirectStar() {
         String questionTemplate = "Who did not direct the star @STAR@?";
-//        String textToReplace = "@STAR@"; // We want to replace the following string
-//
-//        String directorsThatDidNotDirectActor = "SELECT DISTINCT S1.first_name||' '||S1.last_name, M1.director, M2.director, M3.director " +
-//                                                "FROM movies M1, movies M2, movies M3, " +
-//                                                "     stars S1, stars S2, stars S3, " +
-//                                                "     stars_in_movies SIM1, stars_in_movies SIM2, stars_in_movies SIM3 " +
-//                                                "WHERE S1.first_name != '' AND S1.last_name != '' AND M1.director != '' " +
-//                                                "    AND S2.first_name != '' AND S2.last_name != '' AND M2.director != '' " +
-//                                                "    AND S3.first_name != '' AND S3.last_name != '' AND M3.director != '' " +
-//                                                "    AND S1.id = SIM1.star_id AND M1.id = SIM1.movie_id " +
-//                                                "    AND S2.id = SIM2.star_id AND M2.id = SIM2.movie_id " +
-//                                                "    AND S3.id = SIM3.star_id AND M3.id = SIM3.movie_id " +
-//                                                "    AND M1.director != M2.director " +
-//                                                "    AND M2.director != M3.director " +
-//                                                "    AND S1.first_name||' '||S1.last_name = S2.first_name||' '||S2.last_name " +
-//                                                "    AND S2.first_name||' '||S2.last_name = S3.first_name||' '||S3.last_name " +
-//                                                "ORDER BY RANDOM() " +
-//                                                "LIMIT 1;";
-//        Cursor answerCursor = myDB.rawQuery(directorsThatDidNotDirectActor, null);
-//        answerCursor.moveToFirst();
-//        String starReplacement = answerCursor.getString(0);
-//        String director1 = answerCursor.getString(1);
-//        String director2 = answerCursor.getString(2);
-//        String director3 = answerCursor.getString(3);
-//        answerCursor.close();
-//
-//        // Add the incorrect answers to the list of user options
-//        List<String> options = new ArrayList<String>();
-//        options.add(director1);
-//        options.add(director2);
-//        options.add(director3);
-//
-//        String correctAnswerSQL = "SELECT DISTINCT M.director " +
-//                                  "FROM movies M JOIN stars_in_movies SIM " +
-//                                  "   ON M.id = SIM.movie_id JOIN stars S " +
-//                                  "   ON SIM.star_id = S.id AS T, movies M " +
-//                                  "WHERE M.director != '' AND S.first_name||' '||S.last_name != ? " +
-//                                  "ORDER BY RANDOM() " +
-//                                  "LIMIT 1;";
-//        Cursor incorrectAnswerCursor = myDB.rawQuery(incorrectAnswerSQL, new String[]{starReplacement, answer} );
-//        while (incorrectAnswerCursor.moveToNext()) {
-//            // Add each wrong answer to the list of user options
-//            options.add(incorrectAnswerCursor.getString(0));
-//        }
-//        incorrectAnswerCursor.close();
-//
-//
-//        // Generate the Question object and return it
-//        String question = questionTemplate.replace(textToReplace, starReplacement);
-//        Collections.shuffle(options); // Randomize the user options
-//
-//        return new Question(question, answer, options);
-        return null;
+        String textToReplace = "@STAR@"; // We want to replace the following string
+
+        String actorsWithThreeOrMoreDirectors = "SELECT DISTINCT S.first_name||' '||S.last_name AS name " +
+                                                "FROM movies M JOIN stars_in_movies SIM " +
+                                                "ON M.id = SIM.movie_id JOIN stars S " +
+                                                "ON SIM.star_id = S.id " +
+                                                "WHERE M.director != '' AND S.first_name||' '||S.last_name != '' " +
+                                                "GROUP BY name " +
+                                                "HAVING COUNT(M.director) > 2 " +
+                                                "ORDER BY RANDOM() " +
+                                                "LIMIT 1;";
+
+        Cursor cursor = myDB.rawQuery(actorsWithThreeOrMoreDirectors, null);
+        cursor.moveToFirst();
+        String starReplacement = cursor.getString(0);
+        cursor.close();
+
+        String correctAnswerSQL = "SELECT DISTINCT M.director " +
+                                  "FROM movies M JOIN stars_in_movies SIM " +
+                                  "   ON M.id = SIM.movie_id JOIN stars S " +
+                                  "   ON SIM.star_id = S.id " +
+                                  "WHERE M.director != '' AND S.first_name||' '||S.last_name != ? " +
+                                  "ORDER BY RANDOM() " +
+                                  "LIMIT 1;";
+        Cursor answerCursor = myDB.rawQuery(correctAnswerSQL, new String[]{starReplacement} );
+        answerCursor.moveToFirst();
+        String answer = answerCursor.getString(0);
+        answerCursor.close();
+
+        // Add the correct answer to the list of user options
+        List<String> options = new ArrayList<String>();
+        options.add(answer);
+
+        String incorrectAnswerSQL = "SELECT DISTINCT M.director " +
+                                    "FROM movies M JOIN stars_in_movies SIM " +
+                                    "   ON M.id = SIM.movie_id JOIN stars S " +
+                                    "   ON SIM.star_id = S.id " +
+                                    "WHERE M.director != '' AND S.first_name||' '||S.last_name = ? " +
+                                    "ORDER BY RANDOM() " +
+                                    "LIMIT 3;";
+        Cursor incorrectAnswerCursor = myDB.rawQuery(incorrectAnswerSQL, new String[]{starReplacement} );
+        while (incorrectAnswerCursor.moveToNext()) {
+            // Add each wrong answer to the list of user options
+            options.add(incorrectAnswerCursor.getString(0));
+        }
+        incorrectAnswerCursor.close();
+
+
+        // Generate the Question object and return it
+        String question = questionTemplate.replace(textToReplace, starReplacement);
+        Collections.shuffle(options); // Randomize the user options
+
+        return new Question(question, answer, options);
     }
 
     private Question whichStarAppearsInBothMovies() {
         String questionTemplate = "Which star appears in both movies @MOVIE1@ and @MOVIE2@?";
 
         String actorWithTwoMoviesSQL = "SELECT DISTINCT S.first_name||' '||S.last_name, SIM1.movie_id, SIM2.movie_id  " +
-                "FROM stars_in_movies SIM1, stars_in_movies SIM2, stars S " +
-                "WHERE SIM1.star_id = SIM2.star_id " +
-                "AND SIM1.movie_id != SIM2.movie_id " +
-                "AND S.id = SIM1.star_id " +
-                "ORDER BY RANDOM() " +
-                "LIMIT 1;";
+                                       "FROM stars_in_movies SIM1, stars_in_movies SIM2, stars S " +
+                                       "WHERE SIM1.star_id = SIM2.star_id " +
+                                       "AND SIM1.movie_id != SIM2.movie_id " +
+                                       "AND S.id = SIM1.star_id " +
+                                       "ORDER BY RANDOM() " +
+                                       "LIMIT 1;";
         Cursor answerCursor = myDB.rawQuery(actorWithTwoMoviesSQL, null);
         answerCursor.moveToFirst();
         String answer = answerCursor.getString(0);
@@ -380,13 +380,13 @@ public class QuestionGenerator {
         options.add(answer);
 
         String incorrectAnswerSQL = "SELECT S.first_name||' '||S.last_name " +
-                "FROM stars S JOIN stars_in_movies SIM " +
-                "   ON S.id = SIM.star_id JOIN movies M " +
-                "   ON SIM.movie_id = M.id " +
-                "WHERE M.title != '' AND S.first_name != '' AND S.last_name != '' " +
-                "   AND (SIM.movie_id != ? OR SIM.movie_id != ?) " +
-                "ORDER BY RANDOM() " +
-                "LIMIT 3;";
+                                    "FROM stars S JOIN stars_in_movies SIM " +
+                                    "   ON S.id = SIM.star_id JOIN movies M " +
+                                    "   ON SIM.movie_id = M.id " +
+                                    "WHERE M.title != '' AND S.first_name != '' AND S.last_name != '' " +
+                                    "   AND (SIM.movie_id != ? OR SIM.movie_id != ?) " +
+                                    "ORDER BY RANDOM() " +
+                                    "LIMIT 3;";
         Cursor incorrectAnswerCursor = myDB.rawQuery(incorrectAnswerSQL, new String[]{movie_id1, movie_id2} );
         while (incorrectAnswerCursor.moveToNext()) {
             // Add each wrong answer to the list of user options
@@ -518,41 +518,6 @@ public class QuestionGenerator {
 
         // Generate the Question object and return it
         String question = questionTemplate.replace("@STAR@", starReplacement).replace("@YEAR@", yearReplacement);
-        Collections.shuffle(options); // Randomize the user options
-
-        return new Question(question, answer, options);
-    }
-
-    private Question generateQuestion(String questionTemplate, String correctAnswerSQL, String incorrectAnswerSQL, int correctAnswerIndex,
-                                      List<Integer> stringReplaceIndices, List<String> stringToReplace) {
-        // Get the correct answer and movie title
-        Cursor answerCursor = myDB.rawQuery(correctAnswerSQL, null);
-        answerCursor.moveToFirst();
-        String answer = answerCursor.getString(correctAnswerIndex); // This is the answer to the question
-
-        ArrayList<String> stringReplacements = new ArrayList<String>(); // Store the replacement text here
-        for(Integer index : stringReplaceIndices) {
-            stringReplacements.add(answerCursor.getString(index.intValue()));
-        }
-        answerCursor.close();
-
-        // Add the correct answer to the list of user options
-        List<String> options = new ArrayList<String>();
-        options.add(answer);
-
-        // Get the wrong answer options
-        Cursor wrongAswersCursor = myDB.rawQuery(incorrectAnswerSQL, new String[]{answer} );
-        while (wrongAswersCursor.moveToNext()) {
-            // Add each wrong answer to the list of user options
-            options.add(wrongAswersCursor.getString(0));
-        }
-        wrongAswersCursor.close();
-
-        // Generate the Question object and return it
-        String question = "";
-        for(int i=0; i<stringToReplace.size(); i++) {
-            question = questionTemplate.replace(stringToReplace.get(i), stringReplacements.get(i));
-        }
         Collections.shuffle(options); // Randomize the user options
 
         return new Question(question, answer, options);
