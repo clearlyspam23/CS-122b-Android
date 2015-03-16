@@ -1,5 +1,6 @@
 package cs122b.moviequiz;
 
+import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
@@ -11,8 +12,8 @@ public class MainController extends Controller implements View.OnClickListener{
     private Button takeQuizButton;
     private Button viewStatisticsButton;
 
-    private QuizController quizController;
-    private ResultsController resultsController;
+    public QuizController quizController;
+    public ResultsController resultsController;
 
     public MainController() {
         super(R.layout.activity_main);
@@ -42,5 +43,15 @@ public class MainController extends Controller implements View.OnClickListener{
         else if(v.equals(viewStatisticsButton)){
             goToController(resultsController);
         }
+    }
+
+    public void onRestoreInstanceState(Bundle inState){
+        quizController.onRestoreInstanceState(inState);
+        resultsController.onRestoreInstanceState(inState);
+    }
+
+    public void onSaveInstanceState(Bundle outState){
+        quizController.onSaveInstanceState(outState);
+        resultsController.onSaveInstanceState(outState);
     }
 }

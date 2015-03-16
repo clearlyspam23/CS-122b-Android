@@ -17,6 +17,7 @@ public class MainActivity extends ActionBarActivity {
 
     private ArrayList<Controller> activeControllers = new ArrayList<>();
 
+    private MainController mainController;
     private ResultsStore results;
 
     @Override
@@ -40,7 +41,60 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         results = new ResultsStore();
-        setCurrentController(new MainController());
+        setCurrentController(mainController = new MainController());
+    }
+
+    protected void onPause(){
+        super.onPause();
+        getCurrentController().onPause();
+    }
+
+    protected void onResume(){
+        super.onResume();
+        getCurrentController().onResume();
+    }
+
+    protected void onSaveInstanceState(Bundle outBundle){
+        super.onSaveInstanceState(outBundle);
+        ArrayList<Integer> controlStackIds = new ArrayList<Integer>();
+        for(Controller c : activeControllers){
+            c.onSaveInstanceState(outBundle);
+            if(c instanceof MainController){
+                controlStackIds.add(0);
+            }
+            else if(c instanceof QuizController){
+                controlStackIds.add(1);
+            }
+            else if(c instanceof ResultsController)
+                controlStackIds.add(2);
+        }
+        outBundle.putIntegerArrayList("controlStack", controlStackIds);
+    }
+
+    protected void onRestoreInstanceState(Bundle inBundle){
+        super.onRestoreInstanceState(inBundle);
+        activeControllers.clear();
+        mainController = new MainController();
+        ArrayList<Integer> controlStackIds = inBundle.getIntegerArrayList("controlStack");
+        for(Integer i : controlStackIds){
+            if(i.intValue()==0) {
+                mainController.onRestoreInstanceState(inBundle);
+                mainController.setActivity(this);
+                activeControllers.add(mainController);
+            }
+            else if(i.intValue()==1) {
+                mainController.quizController.onRestoreInstanceState(inBundle);
+                mainController.quizController.setActivity(this);
+                activeControllers.add(mainController.quizController);
+            }
+            else if(i.intValue()==2) {
+                mainController.resultsController.onRestoreInstanceState(inBundle);
+                mainController.resultsController.setActivity(this);
+                activeControllers.add(mainController.resultsController);
+            }
+        }
+        if(hasController())
+            setContentView(getCurrentController().getView());
     }
 
     public void back(){

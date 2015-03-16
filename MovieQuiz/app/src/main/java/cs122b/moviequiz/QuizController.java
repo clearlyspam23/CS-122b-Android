@@ -2,6 +2,7 @@ package cs122b.moviequiz;
 
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.Button;
@@ -42,6 +43,15 @@ public class QuizController extends Controller implements View.OnClickListener{
     private int questionsAnswered;
     private int questionsCorrect;
 
+    private static final int BEFORE_QUIZ = 0;
+    private static final int DURING_QUIZ = 1;
+    private static final int QUESTION_JUST_ANSWERED = 3;
+    private static final int AFTER_QUIZ = 2;
+
+    private int state = AFTER_QUIZ;
+
+    private CountDownTimer intermediateTimer;
+
     public QuizController(){
         this(180);
     }
@@ -51,8 +61,7 @@ public class QuizController extends Controller implements View.OnClickListener{
         quizDuration = seconds * 1000l;
     }
 
-    @Override
-    protected void onShow() {
+    private void getReferences(){
         buttons = new Button[]{
                 getButton(R.id.answerButton1),
                 getButton(R.id.answerButton2),
@@ -66,12 +75,18 @@ public class QuizController extends Controller implements View.OnClickListener{
         timeField = getTextView(R.id.countdownText);
         questionField = getTextView(R.id.questionText);
         backButton = getButton(R.id.backButton);
+    }
+
+    @Override
+    protected void onShow() {
+        state = BEFORE_QUIZ;
+        getReferences();
 
         timeField.setText(calculateTime(quizDuration));
         questionField.setTextColor(Color.BLACK);
         questionField.setText("Ready?");
 
-        new CountDownTimer(4000, 4000) {
+        intermediateTimer = new CountDownTimer(4000, 4000) {
 
             @Override
             public void onTick(long millisUntilFinished) {
@@ -80,7 +95,7 @@ public class QuizController extends Controller implements View.OnClickListener{
 
             public void onFinish() {
                 questionField.setText("GO!");
-                new CountDownTimer(2000, 2000) {
+                intermediateTimer = new CountDownTimer(2000, 2000) {
 
                     @Override
                     public void onTick(long millisUntilFinished) {}
@@ -123,6 +138,7 @@ public class QuizController extends Controller implements View.OnClickListener{
     }
 
     private void startQuiz(){
+        state = DURING_QUIZ;
         quizId = getActivity().getResults().getNextQuizId();
         questionId = 0;
         currentTime = 0;
@@ -134,23 +150,18 @@ public class QuizController extends Controller implements View.OnClickListener{
     private void generateQuestion(){
         currentStart = currentTime;
         currentQuestion = generator.generateRandomQuestion();
-        questionField.setTextColor(Color.BLACK);
-        questionField.setText(currentQuestion.getQuestion());
-        for(int i = 0; i < Math.min(currentQuestion.getOptions().size(), buttons.length); i++){
-            buttons[i].setTextColor(Color.BLACK);
-            buttons[i].setText(currentQuestion.getOptions().get(i));
-            buttons[i].setClickable(true);
-        }
+        setToQuestion();
     }
 
     private void finishQuiz(){
+        state = AFTER_QUIZ;
         questionField.setText("Times Up!");
         questionField.setTextColor(Color.BLACK);
         for(Button b : buttons){
             b.setClickable(false);
         }
         tableLayout.setVisibility(View.INVISIBLE);
-        new CountDownTimer(2000, 2000) {
+        intermediateTimer = new CountDownTimer(2000, 2000) {
 
             @Override
             public void onTick(long millisUntilFinished) {}
@@ -213,5 +224,78 @@ public class QuizController extends Controller implements View.OnClickListener{
                 generateQuestion();
             }
         }.start();
+    }
+
+    public void onPause(){
+        quizTimer.cancel();
+    }
+
+    private void setToQuestion(){
+        questionField.setTextColor(Color.BLACK);
+        questionField.setText(currentQuestion.getQuestion());
+        for(int i = 0; i < Math.min(currentQuestion.getOptions().size(), buttons.length); i++){
+            buttons[i].setTextColor(Color.BLACK);
+            buttons[i].setText(currentQuestion.getOptions().get(i));
+            buttons[i].setClickable(true);
+        }
+    }
+
+    public void onResume(){
+        getReferences();
+        if(state==BEFORE_QUIZ){
+            if(intermediateTimer!=null)
+                intermediateTimer.cancel();
+            onShow();
+        }
+        else if(state==DURING_QUIZ||state==QUESTION_JUST_ANSWERED){
+            quizTimer = generateTimer(quizDuration-currentTime);
+            if(state==3)
+                generateQuestion();
+            tableLayout.setVisibility(View.VISIBLE);
+            setToQuestion();
+        }
+        else if(state==AFTER_QUIZ){
+            finishQuiz();
+        }
+    }
+
+    public void onRestoreInstanceState(Bundle inState){
+        quizDuration = inState.getLong("quizDuration");
+        currentStart = inState.getLong("currentStart");
+        currentTime = inState.getLong("currentTime");
+        quizId = inState.getInt("quizId");
+        questionId = inState.getInt("questionId");
+        questionsAnswered = inState.getInt("questionsAnswered");
+        questionsCorrect = inState.getInt("questionsCorrect");
+        String question = inState.getString("currentQuestionQ");
+        String answer = inState.getString("currentQuestionA");
+        ArrayList<String> options = inState.getStringArrayList("currentQuestionOptions");
+        currentQuestion = new Question(question, answer, options);
+        state = inState.getInt("quizState");
+    }
+
+    public void onSaveInstanceState(Bundle outState){
+//        private long quizDuration;
+//        private long currentStart;
+//        private long currentTime;
+//        private Question currentQuestion;
+//        private int quizId;
+//        private int questionId;
+//        private int questionsAnswered;
+//        private int questionsCorrect;
+        outState.putInt("quizState", state);
+        outState.putLong("quizDuration", quizDuration);
+        outState.putLong("currentStart", currentStart);
+        outState.putLong("currentTime", currentTime);
+        outState.putInt("quizId", quizId);
+        outState.putInt("questionId", questionId);
+        outState.putInt("questionsAnswered", questionsAnswered);
+        outState.putInt("questionsCorrect", questionsCorrect);
+        Question currQuest = currentQuestion;
+        if(currQuest==null)
+            currQuest = new Question("", "", new ArrayList<String>());
+        outState.putString("currentQuestionQ", currQuest.getQuestion());
+        outState.putString("currentQuestionA", currQuest.getAnswer());
+        outState.putStringArrayList("currentQuestionOptions", new ArrayList<String>(currQuest.getOptions()));
     }
 }

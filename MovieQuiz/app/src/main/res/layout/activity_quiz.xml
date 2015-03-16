@@ -46,7 +46,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/questionText"
             android:layout_gravity="center"
-            android:textSize="30sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
     </FrameLayout>
 

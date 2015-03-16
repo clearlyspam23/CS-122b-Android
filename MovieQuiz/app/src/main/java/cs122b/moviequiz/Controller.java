@@ -1,5 +1,6 @@
 package cs122b.moviequiz;
 
+import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -25,6 +26,10 @@ public abstract class Controller {
 
     protected MainActivity getActivity(){
         return activity;
+    }
+
+    public void setActivity(MainActivity activity){
+        this.activity = activity;
     }
 
     public void show(MainActivity activity){
@@ -59,5 +64,21 @@ public abstract class Controller {
 
     public void back(){
         activity.back();
+    }
+
+    public void onPause(){
+        onHide();
+    }
+
+    public void onResume(){
+        onShow();
+    }
+
+    public void onRestoreInstanceState(Bundle inState){
+
+    }
+
+    public void onSaveInstanceState(Bundle outState){
+
     }
 }
